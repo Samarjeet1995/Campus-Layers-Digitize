@@ -199,7 +199,38 @@
             left: -50px;
             min-width: 280px;
             max-width: 300px;
-            .ol-popup table {
+        }
+        .ol-popup:after, .ol-popup:before {
+            top: 100%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+        .ol-popup:after {
+            border-top-color: white;
+            border-width: 10px;
+            left: 48px;
+            margin-left: -10px;
+        }
+        .ol-popup:before {
+            border-top-color: #cccccc;
+            border-width: 11px;
+            left: 48px;
+            margin-left: -11px;
+        }
+        .ol-popup-closer {
+            text-decoration: none;
+            position: absolute;
+            top: 2px;
+            right: 8px;
+        }
+        .ol-popup-closer:after {
+            content: "✖";
+        }
+        .ol-popup table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
@@ -216,7 +247,9 @@
         .ol-popup tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-    }
+        #map.select-feature-cursor {
+            cursor: pointer;
+        }
 
     </style>
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.5.0/build/ol.js"></script>
@@ -376,8 +409,8 @@
                 });
             });
 
-            // Add popup overlay
-            const container = document.getElementById('popup');
+             // Add popup overlay
+             const container = document.getElementById('popup');
             const content = document.getElementById('popup-content');
             const closer = document.getElementById('popup-closer');
 
@@ -397,8 +430,9 @@
                 return false;
             };
 
-            // Add these variables for highlighting
+            // Add these variables for highlighting and feature selection
             let highlightedFeature = null;
+            let selectFeatureActive = false;
             const highlightStyle = new ol.style.Style({
                 stroke: new ol.style.Stroke({
                     color: 'rgba(255,0,0,1)',
@@ -411,6 +445,8 @@
 
             // Modify the click event handler
             map.on('click', function(evt) {
+                if (!selectFeatureActive) return;
+
                 // Remove previous highlight
                 if (highlightedFeature) {
                     highlightedFeature.setStyle(undefined);
@@ -424,7 +460,7 @@
                 if (feature) {
                     const coordinates = evt.coordinate;
                     const properties = feature.getProperties();
-                    let popupContent = '<h3>Feature Information</h3><table>';
+                    let popupContent = '<table>';
                     
                     for (let prop in properties) {
                         if (prop !== 'geometry') {
@@ -440,6 +476,23 @@
                     feature.setStyle(highlightStyle);
                     highlightedFeature = feature;
                 } else {
+                    overlay.setPosition(undefined);
+                }
+            });
+
+            // Add select feature button functionality
+            document.getElementById('select-feature-button').addEventListener('click', function() {
+                selectFeatureActive = !selectFeatureActive;
+                if (selectFeatureActive) {
+                    document.getElementById('map').classList.add('select-feature-cursor');
+                    this.style.backgroundColor = 'rgba(255, 0, 0, 0.6)'; // Highlight button when active
+                } else {
+                    document.getElementById('map').classList.remove('select-feature-cursor');
+                    this.style.backgroundColor = ''; // Remove highlight when inactive
+                    if (highlightedFeature) {
+                        highlightedFeature.setStyle(undefined);
+                        highlightedFeature = null;
+                    }
                     overlay.setPosition(undefined);
                 }
             });
