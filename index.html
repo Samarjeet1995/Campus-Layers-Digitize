@@ -198,37 +198,25 @@
             bottom: 12px;
             left: -50px;
             min-width: 280px;
+            max-width: 300px;
+            .ol-popup table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
         }
-        .ol-popup:after, .ol-popup:before {
-            top: 100%;
-            border: solid transparent;
-            content: " ";
-            height: 0;
-            width: 0;
-            position: absolute;
-            pointer-events: none;
+        .ol-popup th, .ol-popup td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
-        .ol-popup:after {
-            border-top-color: white;
-            border-width: 10px;
-            left: 48px;
-            margin-left: -10px;
+        .ol-popup th {
+            background-color: #f2f2f2;
+            font-weight: bold;
         }
-        .ol-popup:before {
-            border-top-color: #cccccc;
-            border-width: 11px;
-            left: 48px;
-            margin-left: -11px;
+        .ol-popup tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-        .ol-popup-closer {
-            text-decoration: none;
-            position: absolute;
-            top: 2px;
-            right: 8px;
-        }
-        .ol-popup-closer:after {
-            content: "✖";
-        }
+    }
 
     </style>
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.5.0/build/ol.js"></script>
@@ -409,8 +397,26 @@
                 return false;
             };
 
-            // Add click event to display feature info
+            // Add these variables for highlighting
+            let highlightedFeature = null;
+            const highlightStyle = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255,0,0,1)',
+                    width: 3
+                }),
+                fill: new ol.style.Fill({
+                    color: 'rgba(255,0,0,0.3)'
+                })
+            });
+
+            // Modify the click event handler
             map.on('click', function(evt) {
+                // Remove previous highlight
+                if (highlightedFeature) {
+                    highlightedFeature.setStyle(undefined);
+                    highlightedFeature = null;
+                }
+
                 const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
                     return feature;
                 });
@@ -429,6 +435,10 @@
                     popupContent += '</table>';
                     content.innerHTML = popupContent;
                     overlay.setPosition(coordinates);
+
+                    // Highlight the selected feature
+                    feature.setStyle(highlightStyle);
+                    highlightedFeature = feature;
                 } else {
                     overlay.setPosition(undefined);
                 }
