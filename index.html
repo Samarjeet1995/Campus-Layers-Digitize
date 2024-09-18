@@ -252,9 +252,11 @@
         }
 
     </style>
+
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.5.0/build/ol.js"></script>
     <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.5.0/css/ol.css">
     <script>
+
         function updateDate() {
             const dateElement = document.getElementById('date');
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -409,8 +411,72 @@
                 });
             });
 
-             // Add popup overlay
-             const container = document.getElementById('popup');
+            // Function to generate a random color
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            // Style function for JEZones layer
+            const jeZonesStyle = function(feature) {
+                const zoneName = feature.get('Zone_Name');
+                const color = getRandomColor();
+                return new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: ol.color.asArray(color).slice(0, 3).concat([0.5]) // 50% opacity
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'black',
+                        width: 2
+                    }),
+                    text: new ol.style.Text({
+                        font: 'bold 12px Arial',
+                        text: zoneName,
+                        fill: new ol.style.Fill({color: 'black'}),
+                        stroke: new ol.style.Stroke({color: 'white', width: 3}),
+                        backgroundFill: new ol.style.Fill({color: 'white'}),
+                        padding: [2, 2, 2, 2]
+                    })
+                });
+            };
+
+            // Update JEZones layer style
+            JEZones.setStyle(jeZonesStyle);
+
+            // Style for CampusBoundary layer
+            const campusBoundaryStyle = new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 0, 0, 0.3)' // Red with 30% opacity
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'red',
+                    width: 3
+                })
+            });
+
+            // Update CampusBoundary layer style
+            CampusBoundary.setStyle(campusBoundaryStyle);
+            
+            // code for selecting feature and popup table
+            // Add these variables for highlighting and feature selection
+            let highlightedFeature = null;
+            let selectFeatureActive = false;
+            const highlightStyle = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255,0,0,1)',
+                    width: 3
+                }),
+                fill: new ol.style.Fill({
+                    color: 'rgba(255,0,0,0.3)'
+                })
+            });
+
+            // Create popup overlay
+            const container = document.getElementById('popup');
             const content = document.getElementById('popup-content');
             const closer = document.getElementById('popup-closer');
 
@@ -429,19 +495,6 @@
                 closer.blur();
                 return false;
             };
-
-            // Add these variables for highlighting and feature selection
-            let highlightedFeature = null;
-            let selectFeatureActive = false;
-            const highlightStyle = new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(255,0,0,1)',
-                    width: 3
-                }),
-                fill: new ol.style.Fill({
-                    color: 'rgba(255,0,0,0.3)'
-                })
-            });
 
             // Modify the click event handler
             map.on('click', function(evt) {
